@@ -71,14 +71,16 @@ let tm;$('q').oninput=e=>{clearTimeout(tm);tm=setTimeout(()=>search(e.target.val
 async function search(q){if(!q)return;view='search';$('ttl').textContent='Результаты: '+q;renderPls();$('list').innerHTML='<small>Ищу…</small>';
  const j=u=>fetch(u).then(r=>r.json());
  const [y,jm,au]=await Promise.allSettled([
-  j(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&videoEmbeddable=true&maxResults=12&q=${encodeURIComponent(q)}&key=${YTK}`),
+  j(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&maxResults=12&q=${encodeURIComponent(q)}&key=${YTK}`),
   j(`https://api.jamendo.com/v3.0/tracks/?client_id=${JAM}&format=json&limit=8&search=${encodeURIComponent(q)}`),
   j(`${AUD}/v1/tracks/search?query=${encodeURIComponent(q)}&app_name=${APP}`)]);
  const out=[];
  if(y.value&&y.value.items)y.value.items.forEach(v=>out.push({src:'yt',id:v.id.videoId,title:dec(v.snippet.title),artist:dec(v.snippet.channelTitle),art:v.snippet.thumbnails.default.url,dur:0}));
  if(jm.value&&jm.value.results)jm.value.results.forEach(t=>out.push({src:'jam',id:'j'+t.id,title:t.name,artist:t.artist_name,art:t.image,dur:t.duration,url:t.audio}));
  if(au.value&&au.value.data)au.value.data.slice(0,8).forEach(t=>out.push({src:'aud',id:'a'+t.id,title:t.title,artist:t.user.name,art:t.artwork&&t.artwork['150x150'],dur:t.duration,aid:t.id}));
- show(out)}
+ show(out);
+ const err=y.status=='rejected'?'нет соединения с YouTube (проверь интернет или открой сайт по ссылке, не файлом)':(y.value&&y.value.error?y.value.error.message:'');
+ if(err)$('list').insertAdjacentHTML('afterbegin','<div style="padding:10px;margin-bottom:10px;border-radius:8px;background:#ff4d4d22;color:#ff9a9a;font-size:13px">YouTube не работает: '+esc(err)+'</div>')}
 
 /* Playback */
 function stopAll(){a.pause();if(ytReady)try{yt.pauseVideo()}catch(e){}}
